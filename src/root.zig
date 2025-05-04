@@ -1,6 +1,9 @@
 const std = @import("std");
 const ff = @import("ff");
 
+pub const bn254_point_g1_t = ff.bn254_point_g1_t;
+pub const bn254_point_g2_t = ff.bn254_point_g2_t;
+
 pub const G1 = struct {
     point: ff.bn254_point_g1_t,
     is_zero: bool,
@@ -82,20 +85,15 @@ pub fn scalarMul(a: G1, s: Scalar) G1 {
     };
 }
 
-pub fn pairIsOne(p: []const G1, q: []const G2) bool {
+pub fn pairIsOne(
+    p: []const bn254_point_g1_t,
+    q: []const bn254_point_g2_t,
+) bool {
     std.debug.assert(p.len == q.len and p.len <= 16);
 
-    var p_p: std.BoundedArray(ff.bn254_point_g1_t, 16) = .{};
-    var q_p: std.BoundedArray(ff.bn254_point_g2_t, 16) = .{};
-
-    for (p, q) |a, b| {
-        p_p.appendAssumeCapacity(a.point);
-        q_p.appendAssumeCapacity(b.point);
-    }
-
     return ff.bn254_pairing(
-        p_p.constSlice().ptr,
-        q_p.constSlice().ptr,
+        p.ptr,
+        q.ptr,
         @intCast(p.len),
     );
 }

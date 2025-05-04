@@ -191,8 +191,8 @@ test "pairing" {
         const input = try std.fmt.hexToBytes(&buffer, case.input);
         if (input.len % 192 != 0) unreachable;
 
-        var p: std.BoundedArray(G1, 16) = .{};
-        var q: std.BoundedArray(G2, 16) = .{};
+        var p: std.BoundedArray(ff.bn254_point_g1_t, 16) = .{};
+        var q: std.BoundedArray(ff.bn254_point_g2_t, 16) = .{};
 
         var window = std.mem.window(u8, input, 192, 192);
         while (window.next()) |slice| {
@@ -203,8 +203,8 @@ test "pairing" {
 
             if (a.is_zero or b.is_zero) continue; // Skip if either point is at infinity.
 
-            try p.append(a);
-            try q.append(b);
+            try p.append(a.point);
+            try q.append(b.point);
         }
 
         const result = ff.pairIsOne(
