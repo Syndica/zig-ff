@@ -89,7 +89,7 @@ pub fn pairIsOne(
     p: []const bn254_point_g1_t,
     q: []const bn254_point_g2_t,
 ) bool {
-    std.debug.assert(p.len == q.len and p.len <= 16);
+    std.debug.assert(p.len == q.len);
 
     return ff.bn254_pairing(
         p.ptr,
