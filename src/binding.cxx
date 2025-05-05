@@ -165,8 +165,8 @@ static uint8_t *G1_to_bytes(libff::alt_bn128_G1 g, uint8_t out[64]) {
   return out;
 }
 
-int bn254_add_syscall(uint8_t const __restrict input[128],
-                      uint8_t __restrict out[64]) {
+int bn254_add_syscall(uint8_t const *__restrict input,
+                      uint8_t *__restrict out) {
   if (!initialized) {
     libff::init_alt_bn128_params();
     initialized = true;
