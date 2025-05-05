@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.v": "coq",
+        "*.sage": "python",
+        "string": "cpp",
+        "stdexcept": "cpp",
+        "sstream": "cpp",
+        "ios": "cpp",
+        "__locale": "cpp"
+    }
+}

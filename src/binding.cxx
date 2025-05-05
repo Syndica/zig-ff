@@ -303,12 +303,16 @@ int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
 
   /*
     Recover Y coordinate from X
-    Y^2 = X^3 + B
+    Y^2 = X^3 + 3
   */
   libff::alt_bn128_Fq X2(X);
   X2.square();
   libff::alt_bn128_Fq X3_plus_b = X * X2 + libff::alt_bn128_coeff_b;
-  libff::alt_bn128_Fq Y(X3_plus_b.sqrt());
+  auto root = X3_plus_b.sqrt();
+  if (root == std::nullopt) {
+    return -1;
+  }
+  libff::alt_bn128_Fq Y(*root);
 
   int is_neg = !(Y.as_bigint() < libff::alt_bn128_Fq::euler);
   if (flag_neg != is_neg) {
@@ -389,8 +393,12 @@ int bn254_decompress_g2_syscall(uint8_t const *__restrict input,
   libff::alt_bn128_Fq2 X2(X);
   X2.square();
   libff::alt_bn128_Fq2 X3_plus_b = X * X2 + libff::alt_bn128_twist_coeff_b;
-  libff::alt_bn128_Fq2 Y(X3_plus_b.sqrt());
-
+  auto root = X3_plus_b.sqrt();
+  if (root == std::nullopt) {
+    return -1;
+  }
+  libff::alt_bn128_Fq2 Y(*root);
+  
   int is_neg = Fq2_is_neg(Y);
   if (flag_neg != is_neg) {
     Y = -Y;

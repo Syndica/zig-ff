@@ -46,6 +46,7 @@ pub fn build(b: *std.Build) !void {
             "-DNO_PROCPS",
             "-DNO_PT_COMPRESSION",
             if (multicore) "-DMULTICORE" else "",
+            if (optimize == .Debug) "-DDEBUG" else "",
         },
     });
     ff.installHeadersDirectory(
