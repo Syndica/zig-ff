@@ -53,35 +53,29 @@ pub fn build(b: *std.Build) !void {
         "libff/",
         .{ .include_extensions = &.{ ".hpp", ".tcc" } },
     );
-    ff.addCSourceFile(.{ .file = b.path("src/binding.cxx") });
-
-    const binding_translate = b.addTranslateC(.{
+    ff.addCSourceFile(.{
+        .file = b.path("src/binding.cxx"),
+        .flags = &.{ "-Wall", "-Werror" },
+    });
+    const translate = b.addTranslateC(.{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("src/binding.h"),
     });
 
-    const header_mod = b.createModule(.{
+    const header_mod = b.addModule("ff", .{
         .target = target,
         .optimize = optimize,
-        .root_source_file = binding_translate.getOutput(),
+        .root_source_file = translate.getOutput(),
     });
     header_mod.linkLibrary(ff);
-
-    const ff_mod = b.addModule("ff", .{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = b.path("src/root.zig"),
-    });
-    ff_mod.addImport("ff", header_mod);
 
     const test_exe = b.addTest(.{
         .target = target,
         .optimize = optimize,
         .root_source_file = b.path("src/test.zig"),
     });
-
-    test_exe.root_module.addImport("ff", ff_mod);
+    test_exe.root_module.addImport("ff", header_mod);
     const run_test_exe = b.step("test", "Runs the test_exe");
     run_test_exe.dependOn(&b.addRunArtifact(test_exe).step);
 }
