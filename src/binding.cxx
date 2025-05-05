@@ -243,6 +243,7 @@ int bn254_pairing_syscall(uint8_t const *__restrict input, uintptr_t input_len,
   }
 
   auto result = libff::alt_bn128_final_exponentiation(tmp);
+  memset(out, 0, 32);
   out[31] = result == libff::alt_bn128_GT::one();
   return 0;
 }
