@@ -44,7 +44,7 @@ static libff::alt_bn128_Fq *bytes_to_Fq(uint8_t const input[32],
   }
 
   // Check that it's a valid field element.
-  if (!(bi < libff::alt_bn128_modulus_q)) {
+  if (bi.cmp(libff::alt_bn128_modulus_q) >= 0) {
     return NULL;
   }
 
@@ -68,7 +68,7 @@ static libff::alt_bn128_G1 *bytes_to_G1_internal(uint8_t const input[64],
 
   // Check flags and y < p
   int is_inf, is_neg;
-  if (!bytes_to_Fq(&input[32], &out->Y, &is_inf, &is_neg)) {
+  if (!bytes_to_Fq(input + 32, &out->Y, &is_inf, &is_neg)) {
     return NULL;
   }
 
@@ -111,6 +111,7 @@ static libff::alt_bn128_G2 *bytes_to_G2_internal(uint8_t const input[128],
   const uint8_t zero[128] = {0};
   if (memcmp(input, zero, 128) == 0) {
     out->Z = libff::alt_bn128_Fq2::zero();
+    return out;
   }
 
   // Check x < p
@@ -140,6 +141,12 @@ static libff::alt_bn128_G2 *bytes_to_G2(uint8_t const input[128],
   if (!p->is_well_formed()) {
     return NULL;
   }
+
+  // libff doesn't do a subgroup membership check in its `is_well_formed` function
+  // See https://eprint.iacr.org/2022/348, Sec 3.1 for Alg.
+  // [r]P == 0 <==> [x+1]P + ψ([x]P) + ψ²([x]P) = ψ³([2x]P)
+  // TODO
+
   return p;
 }
 
@@ -219,8 +226,6 @@ int bn254_pairing_syscall(uint8_t const *__restrict input, uintptr_t input_len,
   }
   libff::inhibit_profiling_info = true;
 
-  if (input_len % 192 != 0)
-    return -1;
   auto element_length = input_len / 192;
 
   // TODO: use more parallel miller loop
@@ -230,10 +235,12 @@ int bn254_pairing_syscall(uint8_t const *__restrict input, uintptr_t input_len,
     libff::alt_bn128_G1 A;
     libff::alt_bn128_G2 B;
 
-    if (!bytes_to_G1(&input[192 * i], &A))
+    if (!bytes_to_G1(&input[192 * i], &A)) {
       return -1;
-    if (!bytes_to_G2(&input[192 * i + 64], &B))
+    }
+    if (!bytes_to_G2(&input[192 * i + 64], &B)) {
       return -1;
+    }
 
     // Skip any pair where either A or B are points at infinity.
     if (A.is_zero() || B.is_zero())
@@ -256,8 +263,9 @@ int bn254_compress_g1_syscall(uint8_t const *__restrict input,
   }
 
   libff::alt_bn128_G1 P;
-  if (!bytes_to_G1(input, &P))
+  if (!bytes_to_G1_internal(input, &P)) {
     return -1;
+  }
 
   uint8_t is_inf = P.is_zero();
   uint8_t flag_inf = input[32] & FLAG_INF;
@@ -266,19 +274,32 @@ int bn254_compress_g1_syscall(uint8_t const *__restrict input,
     1. If the infinity flag is set, return point at infinity
     2. Else, copy x and set the neg_y flag
   */
-
   if (is_inf) {
     memset(out, 0, 32);
     out[0] |= flag_inf;
     return 0;
   }
 
-  int is_neg = !(P.Y.as_bigint() < libff::alt_bn128_Fq::euler);
+  int is_neg = P.Y.as_bigint().cmp(libff::alt_bn128_Fq::euler) > 0;
   memmove(out, input, 32);
   if (is_neg) {
-    out[0] = (uint8_t)(out[0] | FLAG_NEG);
+    out[0] |= FLAG_NEG;
   }
   return 0;
+}
+
+libff::alt_bn128_Fq *fast_sqrt(const libff::alt_bn128_Fq &a, libff::alt_bn128_Fq *out) {
+
+  auto a1 = a ^ libff::alt_bn128_Fq::t_minus_1_over_2;
+  auto a0 = a1.squared() * a;
+
+  auto p_minus_one = libff::bigint<4UL>("15537367993719455909907449462855742678907882278146377936676643359958227611562");
+  if (a0 == p_minus_one) {
+    return NULL;
+  }
+
+  *out = a1 * a;
+  return out;
 }
 
 int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
@@ -308,13 +329,18 @@ int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
   libff::alt_bn128_Fq X2(X);
   X2.square();
   libff::alt_bn128_Fq X3_plus_b = X * X2 + libff::alt_bn128_coeff_b;
+  // libff::alt_bn128_Fq root;
+  // if (!fast_sqrt(X3_plus_b, &root)) {
+  //   return -1;
+  // }
+
   auto root = X3_plus_b.sqrt();
   if (root == std::nullopt) {
     return -1;
   }
   libff::alt_bn128_Fq Y(*root);
 
-  int is_neg = !(Y.as_bigint() < libff::alt_bn128_Fq::euler);
+  int is_neg = Y.as_bigint().cmp(libff::alt_bn128_Fq::euler) > 0;
   if (flag_neg != is_neg) {
     Y = -Y;
   }
@@ -327,9 +353,9 @@ int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
 
 bool Fq2_is_neg(libff::alt_bn128_Fq2 x) {
   if (x.c1.is_zero()) {
-    return !(x.c0.as_bigint() < libff::alt_bn128_Fq::euler);
+    return x.c0.as_bigint().cmp(libff::alt_bn128_Fq::euler) > 0;
   }
-  return !(x.c1.as_bigint() < libff::alt_bn128_Fq::euler);
+  return x.c1.as_bigint().cmp(libff::alt_bn128_Fq::euler) > 0;
 }
 
 int bn254_compress_g2_syscall(uint8_t const *__restrict input,
@@ -340,7 +366,7 @@ int bn254_compress_g2_syscall(uint8_t const *__restrict input,
   }
 
   libff::alt_bn128_G2 P;
-  if (!bytes_to_G2(input, &P))
+  if (!bytes_to_G2_internal(input, &P))
     return -1;
 
   uint8_t is_inf = P.is_zero();

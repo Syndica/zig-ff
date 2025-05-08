@@ -53,6 +53,7 @@ public:
     void clear();
     bool is_zero() const;
     bool is_even() const;
+    int cmp(const bigint<n>& other) const;
     std::size_t max_bits() const { return n * GMP_NUMB_BITS; } /// Returns the number of bits representable by this bigint type
     std::size_t num_bits() const; /// Returns the number of bits in this specific bigint value, i.e., position of the most-significant 1
 

@@ -102,6 +102,12 @@ bool bigint<n>::operator<(const bigint<n>& other) const
 }
 
 template<mp_size_t n>
+int bigint<n>::cmp(const bigint<n>& other) const
+{
+    return mpn_cmp(this->data, other.data, n);
+}
+
+template<mp_size_t n>
 void bigint<n>::clear()
 {
     mpn_zero(this->data, n);

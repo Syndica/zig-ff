@@ -5,6 +5,7 @@
         "build.zig.zon",
         "build.zig",
         "src",
+        "libff",
     },
     .dependencies = .{
         .ff = .{
