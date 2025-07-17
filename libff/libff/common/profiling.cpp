@@ -354,37 +354,37 @@ void print_mem(const std::string &s)
 #endif
 }
 
-void print_compilation_info()
-{
-#ifdef __GNUC__
-    printf("g++ version: %s\n", __VERSION__);
-    printf("Compiled on %s %s\n", __DATE__, __TIME__);
-#endif
-#ifdef STATIC
-    printf("STATIC: yes\n");
-#else
-    printf("STATIC: no\n");
-#endif
-#ifdef MULTICORE
-    printf("MULTICORE: yes\n");
-#else
-    printf("MULTICORE: no\n");
-#endif
-#ifdef DEBUG
-    printf("DEBUG: yes\n");
-#else
-    printf("DEBUG: no\n");
-#endif
-#ifdef PROFILE_OP_COUNTS
-    printf("PROFILE_OP_COUNTS: yes\n");
-#else
-    printf("PROFILE_OP_COUNTS: no\n");
-#endif
-#ifdef _GLIBCXX_DEBUG
-    printf("_GLIBCXX_DEBUG: yes\n");
-#else
-    printf("_GLIBCXX_DEBUG: no\n");
-#endif
-}
+// void print_compilation_info()
+// {
+// #ifdef __GNUC__
+//     printf("g++ version: %s\n", __VERSION__);
+//     printf("Compiled on %s %s\n", __DATE__, __TIME__);
+// #endif
+// #ifdef STATIC
+//     printf("STATIC: yes\n");
+// #else
+//     printf("STATIC: no\n");
+// #endif
+// #ifdef MULTICORE
+//     printf("MULTICORE: yes\n");
+// #else
+//     printf("MULTICORE: no\n");
+// #endif
+// #ifdef DEBUG
+//     printf("DEBUG: yes\n");
+// #else
+//     printf("DEBUG: no\n");
+// #endif
+// #ifdef PROFILE_OP_COUNTS
+//     printf("PROFILE_OP_COUNTS: yes\n");
+// #else
+//     printf("PROFILE_OP_COUNTS: no\n");
+// #endif
+// #ifdef _GLIBCXX_DEBUG
+//     printf("_GLIBCXX_DEBUG: yes\n");
+// #else
+//     printf("_GLIBCXX_DEBUG: no\n");
+// #endif
+// }
 
 } // namespace libff
