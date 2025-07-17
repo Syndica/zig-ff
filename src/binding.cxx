@@ -145,7 +145,9 @@ static libff::alt_bn128_G2 *bytes_to_G2(uint8_t const input[128],
   // libff doesn't do a subgroup membership check in its `is_well_formed` function
   // See https://eprint.iacr.org/2022/348, Sec 3.1 for Alg.
   // [r]P == 0 <==> [x+1]P + ψ([x]P) + ψ²([x]P) = ψ³([2x]P)
-  // TODO
+  // TODO: this is an extremely!! slow check, do the cool frob method instead
+  auto r = libff::alt_bn128_modulus_r * *p; 
+  if (!r.is_zero()) return NULL;
 
   return p;
 }
