@@ -244,7 +244,20 @@ test "pairing" {
     }
 }
 
-pub fn main() !void {
-    // 19485874751759354771024239261021720505790618469301721065564631296452457478437 266929791119991161246907387137283842545076965332900288569378510910307636690
-    ff.bn254_test();
+test "edge cases" {
+    // All zeroes should return all zeroes.
+    {
+        var out: [64]u8 = undefined;
+        try std.testing.expectEqual(
+            0,
+            ff.bn254_decompress_g1_syscall(&@as([32]u8, @splat(0)), &out),
+        );
+    }
+    {
+        var out: [128]u8 = undefined;
+        try std.testing.expectEqual(
+            0,
+            ff.bn254_decompress_g2_syscall(&@as([64]u8, @splat(0)), &out),
+        );
+    }
 }

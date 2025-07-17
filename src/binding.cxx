@@ -309,6 +309,13 @@ int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
     initialized = true;
   }
 
+  // Special case: all zeros in => all zeros out, no flags
+  const uint8_t zero[32] = { 0 };
+  if(memcmp(input, zero, 32) == 0) {
+    memset(out, 0, 64UL);
+    return 0;
+  }
+
   libff::alt_bn128_Fq X;
   int is_inf, flag_neg;
   if (!bytes_to_Fq(input, &X, &is_inf, &flag_neg)) {
@@ -329,11 +336,6 @@ int bn254_decompress_g1_syscall(uint8_t const *__restrict input,
   libff::alt_bn128_Fq X2(X);
   X2.square();
   libff::alt_bn128_Fq X3_plus_b = X * X2 + libff::alt_bn128_coeff_b;
-  // libff::alt_bn128_Fq root;
-  // if (!fast_sqrt(X3_plus_b, &root)) {
-  //   return -1;
-  // }
-
   auto root = X3_plus_b.sqrt();
   if (root == std::nullopt) {
     return -1;
