@@ -1,6 +1,7 @@
 .{
-    .name = "ff",
+    .name = .ff,
     .version = "0.1.0",
+    .fingerprint = 0xd6af1ab301323022,
     .paths = .{
         "build.zig.zon",
         "build.zig",
@@ -15,11 +16,11 @@
         },
         .sodium = .{
             .url = "git+https://github.com/jedisct1/libsodium#d67b1e8f8d719f8ab0c0f1fb8e188965907c18b9",
-            .hash = "1220f39fdde1b78308634b791d1ace8b45386a8af9b33b2242648ae5d6d08f70a4c2",
+            .hash = "N-V-__8AAGFAYQDzn93ht4MIY0t5HRrOi0U4aor5szsiQmSK",
         },
         .gmp = .{
             .url = "git+https://github.com/Rexicon226/zig-gmp#75f4636c6ec46a4ea53b796fd555e841908c225a",
-            .hash = "12206f7cf0011e40a65c6b780fe9fa86f98c7b829ffd7deebe64c9370d6cb1060d1c",
+            .hash = "gmp-0.1.0-AAAAAJn5AQBvfPABHkCmXGt4D-n6hvmMe4Kf_X3uvmTJ",
         },
     },
 }
